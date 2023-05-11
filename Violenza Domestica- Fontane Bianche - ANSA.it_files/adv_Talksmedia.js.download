@@ -1,0 +1,34 @@
+/* withinCMS */
+function withinCMS() {
+	if ( typeof isCMS !== 'undefined' || sectionCode.indexOf('pubbliredazionali_all')!=-1) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+const arrSections = [];
+arrSections[0] = sectionCode;
+//console.log("arrSections:" + arrSections);
+if (sectionCode.indexOf("hp_") != -1) {
+  //console.log("section");
+  window.WebsiteDetailContainer = {
+    pageType: 'section',
+    categories: arrSections,
+    region: []
+  }
+} else if (sectionCode === "home") {
+  //console.log("homepage");
+  window.WebsiteDetailContainer = {
+    pageType: 'homepage',
+    categories: arrSections,
+    region: []
+  }
+} else {
+  //console.log("post");
+  window.WebsiteDetailContainer = {
+    pageType: 'post',
+    categories: arrSections,
+    region: []
+  }
+}

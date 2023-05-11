@@ -1,0 +1,408 @@
+// JavaScript Document
+
+	if (isConsentGiven()) {
+		$.cookie('cb-enabled', 'accepted');
+	} else {
+		$.cookie('cb-enabled', null);
+	}
+	var userAccept = $.cookie('cb-enabled');
+	var cookieAccepted = (userAccept != null && userAccept.indexOf('accepted') != -1);
+	
+	var isPianoCrawler = navigator.userAgent && navigator.userAgent.indexOf("cXensebot") >= 0;
+	
+
+	function getCookie(name) {
+	  const value = `; ${document.cookie}`;
+	  const parts = value.split(`; ${name}=`);
+	  if (parts.length === 2) return parts.pop().split(';').shift();
+	}
+	
+	function setCookieAbbonato(val) {
+		document.cookie = "sub=" + val + "; path=/";
+	}
+	
+	function showModalLogin(level) {
+		showLogin(false);
+		return true;
+	}
+	
+	function userLogout() {
+		tp = window.tp || [];
+		
+		// Cancello il cookie di sessione
+		document.cookie = 'sub=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+		
+		tp.push(["init", function () {
+			tp.pianoId.logout();
+		}]);
+	    
+	}
+	
+	function checkConsentExpiration(tcData) {
+		const LAST_UPDATE_CONSENT_DAYS = 365;
+		
+		var consentString = tcData.tcString;
+	    var consentModel = TCStringParse(consentString);
+	  
+	    var lastUpdateConsent = new Date(consentModel.core.lastUpdated);
+	    var consentExpirationDate = new Date(new Date().setDate(new Date().getDate() - LAST_UPDATE_CONSENT_DAYS));
+	  
+	    if (lastUpdateConsent < consentExpirationDate) {
+		  console.log("lastUpdateConsent: " + lastUpdateConsent + " - consentExpirationDate: " + consentExpirationDate + " - Consenso non valido!");
+	  	  _iub.cs.api.resetCookies();
+	  	  location.reload();
+	    }
+	    else {
+		  console.log("lastUpdateConsent: " + lastUpdateConsent + " - consentExpirationDate: " + consentExpirationDate + " - Consenso valido!");
+	    }
+	}
+	
+	function showCookieWall() {
+		
+		console.log("SHOW COOKIE WALL!"); 
+		
+		var linkAbbonato = "<div id='subscribe'>Sei già abbonato ad ANSA.it? <a href='#' onclick='showModalLogin(0);'>ACCEDI</a></div>";
+		var linkAbbonatoLivello2 = '<span>Sei già abbonato ad ANSA.it?</span><span>|</span><a href="#" onclick="showModalLogin(1);">Accedi</a></div>';
+		
+		if (getCookie('__utp') !== undefined) {
+			var cookieData = JSON.parse(atob(getCookie('__utp').split('.')[1]));
+			linkAbbonato = "<div id='subscribe'>Ciao " + cookieData['given_name'] + ". <a href='#' onclick='userLogout();'>LOGOUT</a></div>";
+			linkAbbonatoLivello2 = "<span>Ciao " + cookieData['given_name'] + "</span><span>|</span><a href='#' onclick='userLogout();'>Logout</a>";
+			
+			$('.prompt-to-accept__content').html("<p><u>Sei un utente registrato ma non hai un abbonamento in corso di validità</u>.</p><p>Se hai scelto di non accettare i cookie di  profilazione e tracciamento, puoi aderire all&rsquo;Abbonamento \"Consentless\" a un  costo molto accessibile, oppure scegliere un altro Abbonamento per accedere ad  ANSA.it.</p><p>Ti invitiamo a leggere le <a href=\"/sito/static/condizioni_generali_di_servizio.html\" target=\"_blank\">Condizioni  Generali di Servizio</a>, la <a href=\"https://www.iubenda.com/privacy-policy/15665353/cookie-policy?an=no&amp;s_ck=false&amp;newmarkup=yes\" class=\"iubenda-cs-cookie-policy-lnk\" target=\"_blank\" rel=\"noopener\">Cookie Policy</a> e l'<a href=\"/sito/static/privacy.html\" target=\"_blank\">Informativa Privacy</a>.</p>");
+   		}
+   		$('.prompt-to-accept__sign-in').html(linkAbbonatoLivello2);
+		
+		_iub.csConfiguration = {
+			"invalidateConsentBefore": "2023-03-16",
+			"reloadOnConsent" : false,
+			"enableTcf": true,
+    		"tcfVersion": 2,
+			"googleAdditionalConsentMode": true,
+			"lang" : "it",
+			"siteId" : 1671648,
+			"rebuildIframe" : true,
+			"preserveOriginalClasses" : true,
+			"preserveIubClasses" : true,
+			"enableCcpa" : true,
+			"countryDetection" : true,
+			"consentOnContinuedBrowsing" : false,
+			"floatingPreferencesButtonDisplay": false,
+			"cookiePolicyId" : 15665353,
+			"perPurposeConsent": true,
+            "tcfPurposes": {
+                  "1": "consent_only",
+                  "2": "consent_only",
+                  "3": "consent_only",
+                  "4": "consent_only",
+                  "5": "consent_only",
+                  "6": "consent_only",
+                  "7": "consent_only",
+                  "8": "consent_only",
+                  "9": "consent_only",
+                  "10": "consent_only"
+              },
+			"listPurposes": true,
+			"explicitWithdrawal": true,
+			"invalidateConsentWithoutLog": true,
+			banner: {
+			      
+                  applyStyles: false,
+                  position: 'float-center',
+                  acceptButtonDisplay: true,
+                  acceptButtonCaption: "ACCETTA E CONTINUA",
+                  rejectButtonDisplay: false,
+                  customizeButtonDisplay: true,
+                  "closeButtonDisplay": true,
+                  customizeButtonCaption: "PREFERENZE COOKIES", 
+                
+			      "closeButtonCaption":"",
+			      backgroundOverlay:true,
+			      logo:"https://www.ansa.it/sito/static/abbonamenti/img/logo_green.png",
+			      content:"" + linkAbbonato + "<button type=\"button\" class=\"iubenda-cs-close-btn\" tabindex=\"0\" role=\"button\" aria-pressed=\"false\" style=\"border-radius: 3px !important; border: 1px solid rgb(120, 120, 120) !important;top:5px!important; font-size: 13px!important;text-transform:uppercase!important;font-weight: 400 !important; padding: 5px 15px !important; height: 30px !important; color: rgb(120, 120, 120) !important; visibility: visible;opacity: .9!important;position:relative!important;margin:-5px 0 15px 10px!important;\">Rifiuta e abbonati</button><p class=\"iub-p\">Gentile Lettore, ogni giorno ANSA è impegnata nella produzione di informazione tempestiva e affidabile, grazie alla sua capillare presenza sul territorio nazionale e internazionale, con l’obiettivo di rendere accessibili i propri servizi a condizioni vantaggiose e sostenibili.</p><p class=\"iub-p\">A tal fine, con il tuo consenso, ANSA ricorre all’uso di pubblicità profilata che, aumentando i ricavi pubblicitari, consente di offrirti il libero accesso a tutti i titoli di ANSA.it e a 10 contenuti ogni 30 giorni (servizio base). Naturalmente puoi rifiutare il consenso alla profilazione in qualsiasi momento ma, in questo caso, ti chiediamo di aderire all’abbonamento “Consentless”, con il quale avrai accesso ad un servizio equivalente a quello fruibile accettando i cookie di profilazione, o ad altro abbonamento, secondo le <a href='/sito/static/condizioni_generali_di_servizio.html' target=\"_blank\">Condizioni  Generali di Servizio</a>.</p><p class=\"iub-p\">Accettando tutti i cookie e tecnologie simili di profilazione pubblicitaria e tracciamento, noi e <a href=\"javascript:void(0)\" class=\"iubenda-vendor-list-link\">terze parti selezionate</a> li utilizzeremo per raccogliere ed elaborare i tuoi dati personali (ad esempio l'indirizzo IP, tracciamenti precisi dei dispositivi e della posizione geografica) e fornirti annunci e contenuti personalizzati, valutare l’interazione con annunci e contenuti, effettuare ricerche di mercato, migliorare i servizi. Per maggiori informazioni accedi alla <a href=\"https://www.iubenda.com/privacy-policy/15665353/cookie-policy?an=no&amp;s_ck=false&amp;newmarkup=yes\" class=\"iubenda-cs-cookie-policy-lnk\" target=\"_blank\" rel=\"noopener\">Cookie Policy</a> e all’<a href='/sito/static/privacy.html' target=\"_blank\">Informativa Privacy</a>.</p><p class=\"iub-p\">Se fai click su “ACCETTA E CONTINUA”, accetti direttamente tutti i cookie e le tecnologie di profilazione e tracciamento, accedendo al servizio base; oppure puoi rifiutare tutti i cookie facendo click su “RIFIUTA E ABBONATI” e aderendo a uno dei nostri abbonamenti. Se fai click su “PREFERENZE COOKIE” puoi accettare, rifiutare o modificare il consenso a tutti o alcuni trattamenti dei dati e, in caso di rifiuto integrale o parziale delle finalità di profilazione e tracciamento, puoi aderire a uno dei nostri abbonamenti per continuare a navigare su ANSA.it.</p>",
+			     "closeButtonRejects": true
+			    },
+	        callback: {
+			   onReady: function() {
+			   		
+			        const customizeButton = document.querySelector('.iubenda-cs-customize-btn');
+			        const bannerRationale = document.querySelector('.iubenda-cs-rationale');
+			        const bannerFooter = document.querySelector('.iubenda-cs-footer');
+			        
+			        const advLink = document.querySelector('.iubenda-advertising-preferences-link');
+			        advLink.innerHTML = 'finalità pubblicitarie';
+			        
+			        if(bannerFooter) {
+			          bannerRationale.append(bannerFooter);
+			        }
+					
+			      },
+			 onPreferenceExpressed: function() {
+			 	
+			    __tcfapi('getTCData', 2, function(tcData) {
+			    	
+			    	checkConsentExpiration(tcData);
+			    	
+				    var allTcfPurposesAccepted = Object.keys(tcData.purpose.consents).every(function(purposeId) {
+				      return tcData.purpose.consents[purposeId] === true;
+				    });
+				    var isCpFullyAccepted = _iub.cs.api.isConsentGiven();
+				    
+				    if ((allTcfPurposesAccepted && isCpFullyAccepted) || (isAbbonato === '1')) {
+				    	
+				    	var scriptOutbrain = document.createElement('script');
+						scriptOutbrain.type = 'text/javascript';
+						scriptOutbrain.src = '//widgets.outbrain.com/outbrain.js';
+						document.body.appendChild(scriptOutbrain);
+				    	
+				    	console.log('allTcfPurposesAccepted = true');
+				    	
+				      	document.documentElement.classList.remove('show-prompt-to-accept');
+				      	
+				      
+				    } else {
+				    	
+				    	console.log('allTcfPurposesAccepted = false');
+					
+				        document.documentElement.classList.add('show-prompt-to-accept');
+			    	}
+			  });
+		   },
+		   "onConsentRejected": function() {
+	                $('.dugout-video').html('<a href=\"javascript:void(0)\" title=\"Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it\" class=\"iubenda-cs-preferences-link\"><img src=\"/sito/img/banner/player-onefootball.png?4\" widht=\"338\" height=\"255\" alt=\"\"/></a>');	
+	                $('opta-widget').html('<a href=\"javascript:void(0)\" title=\"Per vedere questo contenuto devi accettare i consensi!\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it </a>');
+	                $('iframe._iub_cs_activate').remove();
+	                $('.podcast-box').html('<span class=\"box-link\"><a href=\"/sito/podcast/index.shtml\" class=\"special-link\">vai</a></span><h2 class=\"news-eyelet\">ANSA Podcast</h2><a href=\"javascript:void(0)\" title=\"Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it</a>');
+			  		$('.audio-tit').append('<a href=\"javascript:void(0)\" title=\"Per vedere questo contenuto devi accettare i consensi!\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it </a>');
+	            },
+			"onConsentFirstRejected": function() {
+	                $('.dugout-video').html('<a href=\"javascript:void(0)\" title=\"Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it\" class=\"iubenda-cs-preferences-link\"><img src=\"/sito/img/banner/player-onefootball.png?4\" widht=\"338\" height=\"255\" alt=\"\"/></a>');	
+	                $('opta-widget').html('<a href=\"javascript:void(0)\" title=\"Per vedere questo contenuto devi accettare i consensi!\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it </a>');
+	                $('iframe._iub_cs_activate').remove();
+	                $('.podcast-box').html('<span class=\"box-link\"><a href=\"/sito/podcast/index.shtml\" class=\"special-link\">vai</a></span><h2 class=\"news-eyelet\">ANSA Podcast</h2><a href=\"javascript:void(0)\" title=\"Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it</a>');
+			  		$('.audio-tit').append('<a href=\"javascript:void(0)\" title=\"Per vedere questo contenuto devi accettare i consensi!\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it </a>');
+	            } 
+         }
+	  }
+	  
+	  	
+		var body = document.getElementsByTagName('body')[0];
+		
+		var scriptStub = document.createElement('script');
+		scriptStub.type = 'text/javascript';
+		scriptStub.src = '//cdn.iubenda.com/cs/tcf/stub-v2.js';
+		body.appendChild(scriptStub);
+		
+		var scriptTcf = document.createElement('script');
+		scriptTcf.type = 'text/javascript';
+		scriptTcf.src = '//cdn.iubenda.com/cs/tcf/safe-tcf-v2.js';
+		body.appendChild(scriptTcf);
+		
+		var scriptCs = document.createElement('script');
+		scriptCs.type = 'text/javascript';
+		scriptCs.src = '//cdn.iubenda.com/cs/iubenda_cs.js';
+		scriptCs.charset = 'UTF-8';
+		body.appendChild(scriptCs);
+		
+		
+	}
+	
+	function showConsentSolution() {
+		
+		console.log("SHOW CONSENT SOLUTION!");
+		
+		_iub.csConfiguration = {
+			"invalidateConsentBefore": "2023-03-16",
+			"reloadOnConsent" : true,
+			"enableTcf": true,
+    		"tcfVersion": 2,
+			"googleAdditionalConsentMode": true,
+			"lang" : "it",
+			"siteId" : 1671648,
+			"rebuildIframe" : true,
+			"preserveOriginalClasses" : true,
+			"preserveIubClasses" : true,
+			"enableCcpa" : true,
+			"countryDetection" : true,
+			"consentOnContinuedBrowsing" : false,
+			"cookiePolicyId" : 15665353,
+			"perPurposeConsent": true,
+            "tcfPurposes": {
+                  "1": "consent_only",
+                  "2": "consent_only",
+                  "3": "consent_only",
+                  "4": "consent_only",
+                  "5": "consent_only",
+                  "6": "consent_only",
+                  "7": "consent_only",
+                  "8": "consent_only",
+                  "9": "consent_only",
+                  "10": "consent_only"
+              },
+			"listPurposes": true,
+			"explicitWithdrawal": true,
+			"invalidateConsentWithoutLog": true,
+			"banner" : {
+				"slideDown" : false,
+				"acceptButtonDisplay" : true,
+				"customizeButtonDisplay" : true,
+				"position" : "float-center",
+				"textColor" : "white",
+				"backgroundColor" : "#000001",
+				"backgroundOverlay" : true,
+				"acceptButtonColor" : "#0f9131",
+				"acceptButtonCaptionColor" : "white",
+				"customizeButtonColor" : "#0f9131",
+				"customizeButtonCaptionColor" : "white",
+				"closeButtonDisplay": true,
+				"closeButtonCaption":"",
+                "content":"<button type=\"button\" class=\"iubenda-cs-close-btn\" tabindex=\"0\" role=\"button\" aria-pressed=\"false\" style=\"border-radius: 55px !important; border: 1px solid rgb(150, 150, 150) !important;top:5px!important; font-size: 13px !important; font-weight: bold !important; padding: 5px 15px !important; height: 30px !important; color: rgb(150, 150, 150) !important; visibility: visible;position:relative!important;left:0!important;right:inherit!important\">Continua senza accettare</button><div id=\"iubenda-cs-title\" style=\"text-align:center;\">Informativa</div> <div id=\"iubenda-cs-paragraph\><p class=\"iub-p\">Noi e terze parti selezionate utilizziamo cookie o tecnologie simili per finalit&agrave; tecniche e, con il tuo consenso, anche per altre finalit&agrave; come specificato nella <a href=\"https://www.iubenda.com/privacy-policy/15665353/cookie-policy?an=no&amp;s_ck=false&amp;newmarkup=yes\" class=\"iubenda-cs-cookie-policy-lnk\" target=\"_blank\" rel=\"noopener\">cookie policy</a>. Il rifiuto del consenso pu&ograve; rendere non disponibili le relative funzioni.</p><p class=\"iub-p\">Per quanto riguarda la pubblicit&agrave;, noi e <a href=\"javascript:void(0)\" class=\"iubenda-vendor-list-link\">terze parti</a> selezionate, potremmo utilizzare <em>dati di geolocalizzazione precisi e l'identificazione attraverso la scansione del dispositivo</em>, al fine di <em>archiviare e/o accedere a informazioni su un dispositivo</em> e trattare dati personali come i tuoi dati di utilizzo, per le seguenti <a href=\"javascript:void(0)\" class=\"iubenda-advertising-preferences-link\">finalit&agrave; pubblicitarie</a>: <em>annunci e contenuti personalizzati, valutazione degli annunci e del contenuto, osservazioni del pubblico e sviluppo di prodotti</em>.</p><p class=\"iub-p\">Puoi liberamente prestare, rifiutare o revocare il tuo consenso, in qualsiasi momento, accedendo al pannello delle preferenze.</p><p class=\"iub-p\"></p><p class=\"iub-p\">Puoi acconsentire all'uso delle tecnologie sopra menzionate facendo click su 'Accetta' o rifiutarne l'uso facendo click su 'Continua senza accettare'.</p></div>",
+   				"closeButtonRejects": true
+			},
+	        "callback": {
+	            "onConsentRejected": function() {
+	                $('.dugout-video').html('<a href=\"javascript:void(0)\" title=\"Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it\" class=\"iubenda-cs-preferences-link\"><img src=\"/sito/img/banner/player-onefootball.png?4\" widht=\"338\" height=\"255\" alt=\"\"/></a>');	
+	                $('opta-widget').html('<a href=\"javascript:void(0)\" title=\"Per vedere questo contenuto devi accettare i consensi!\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it </a>');
+	                $('iframe._iub_cs_activate').remove();
+	                $('.podcast-box').html('<span class=\"box-link\"><a href=\"/sito/podcast/index.shtml\" class=\"special-link\">vai</a></span><h2 class=\"news-eyelet\">ANSA Podcast</h2><a href=\"javascript:void(0)\" title=\"Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it</a>');
+			  		$('.audio-tit').append('<a href=\"javascript:void(0)\" title=\"Per vedere questo contenuto devi accettare i consensi!\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it </a>');
+	            },
+			"onConsentFirstRejected": function() {
+	                $('.dugout-video').html('<a href=\"javascript:void(0)\" title=\"Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it\" class=\"iubenda-cs-preferences-link\"><img src=\"/sito/img/banner/player-onefootball.png?4\" widht=\"338\" height=\"255\" alt=\"\"/></a>');	
+	                $('opta-widget').html('<a href=\"javascript:void(0)\" title=\"Per vedere questo contenuto devi accettare i consensi!\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it </a>');
+	                $('iframe._iub_cs_activate').remove();
+	                $('.podcast-box').html('<span class=\"box-link\"><a href=\"/sito/podcast/index.shtml\" class=\"special-link\">vai</a></span><h2 class=\"news-eyelet\">ANSA Podcast</h2><a href=\"javascript:void(0)\" title=\"Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it</a>');
+			  		$('.audio-tit').append('<a href=\"javascript:void(0)\" title=\"Per vedere questo contenuto devi accettare i consensi!\" class=\"iubenda-cs-preferences-link no-cookies\">Contenuto non visibile perche\' connesso a cookie di terze parti. Per visualizzare modifica le tue preferenze cookie su ansa.it </a>');
+	            },
+	         onPreferenceExpressed: function() {
+			 	
+			    __tcfapi('getTCData', 2, function(tcData) {
+			    	
+			    	checkConsentExpiration(tcData);
+			    	
+			   		var scriptOutbrain = document.createElement('script');
+					scriptOutbrain.type = 'text/javascript';
+					scriptOutbrain.src = '//widgets.outbrain.com/outbrain.js';
+					document.body.appendChild(scriptOutbrain);
+			    	
+			    	console.log('allTcfPurposesAccepted'); 	
+				    
+			  });
+	         }
+	       }
+		};
+		
+		
+		var body = document.getElementsByTagName('body')[0];
+		
+		var scriptStub = document.createElement('script');
+		scriptStub.type = 'text/javascript';
+		scriptStub.src = '//cdn.iubenda.com/cs/tcf/stub-v2.js';
+		body.appendChild(scriptStub);
+		
+		var scriptTcf = document.createElement('script');
+		scriptTcf.type = 'text/javascript';
+		scriptTcf.src = '//cdn.iubenda.com/cs/tcf/safe-tcf-v2.js';
+		body.appendChild(scriptTcf);
+		
+		var scriptCs = document.createElement('script');
+		scriptCs.type = 'text/javascript';
+		scriptCs.src = '//cdn.iubenda.com/cs/iubenda_cs.js';
+		scriptCs.charset = 'UTF-8';
+		body.appendChild(scriptCs);
+		
+		
+	}
+	
+	
+	function checkAccessList() {
+	  tp = window["tp"] || [];
+	  
+	  // Effettuo il controllo per capire se l'utente ha un abbonamento valido
+	  console.log("USER CHECKING ACCESS LIST...");
+	  
+	  // Ansa.it, Ansa Sito e App, Ansa Corporate, Ansa Network, Ansa Consentless
+	  var validRes = ["RJ1VXOX", "BRCGX08V", "RDAQCPY", "ROGSPFN", "RG44KT5"];
+	  
+	  var callback = function(response) {
+	    
+	    //console.log("RESPONSE: ", response);
+	    
+	    if (response.data && response.data.length > 0) {
+	    	var pianoRes = response.data;
+	    	var accessConsented = false;
+	    	pianoRes.forEach(function(res) {
+			    var index = validRes.indexOf(res.resource.rid);
+			    if (index != -1) {
+			    	//console.log("ACCESSO CONSENTITO! RISORSA: " + res.resource.rid + " - " + res.granted + " - index=" + index);
+			    	accessConsented = true;
+			    }
+			});
+			if (accessConsented) {
+				console.log("ACCESSO CONSENTITO!");
+				
+			  // L'utente ha una sottoscrizione valida
+		      setCookieAbbonato(1);
+		      
+		      // Mostro la consent solution semplice
+		      showConsentSolution();
+			}
+			else {
+				console.log("ACCESSO NON CONSENTITO!");
+				
+				// L'utente non ha una sottoscrizione valida
+			    setCookieAbbonato(0);
+			      
+			    // Mostro il cookie wall
+			    showCookieWall();
+			}
+			
+	    }
+	    else {
+	    	console.log("NESSUNA RISORSA ATTIVA! ", response);
+	    	
+	    	// L'utente non ha nessuna sottoscrizione attiva
+			setCookieAbbonato(0);
+			      
+			// Mostro il cookie wall
+			showCookieWall();
+	    }
+	    
+	  };
+	  
+	  tp.push(["init", function () {
+		tp.api.callApi("/access/list", null, callback);
+	  }]);
+	}
+	
+	function isLogged() {
+		if (getCookie('__utp') !== undefined) {
+			return true;
+		}
+		return false;
+	}
+
+	if (!withinCMS()) {
+		
+		// Controllo la presenza del cookie di sottoscrizione
+		var isAbbonato = getCookie("sub");
+		if (isAbbonato === undefined) {
+			// Controllo se l'utente è loggato
+			if (isLogged()) {
+				// Controllo i dati d'accesso e visualizzo il wall o la consent
+				checkAccessList();
+			}
+			else {
+				// L'utente non è loggato, mostro il cookie wall
+				showCookieWall();
+			}
+		}
+		else {
+			if (isAbbonato === '0') {
+				showCookieWall();
+			}
+			else {
+				showConsentSolution();
+			}
+		}
+	}

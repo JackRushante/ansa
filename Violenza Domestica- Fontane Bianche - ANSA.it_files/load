@@ -1,0 +1,265 @@
+ 
+  (function () {
+    tp = window["tp"] || [];
+  
+    window.pdl = window.pdl || {};
+    window.pdl.requireConsent = true;
+  
+  	tp.push(["setEspEndpoint", 'https://api-esp-eu.piano.io']);
+
+    window.PianoESPConfig = {
+        id: 4
+    };
+    /* Checkout related */
+    /**
+     * Event properties
+     *
+     * chargeAmount - amount of purchase
+     * chargeCurrency
+     * uid
+     * email
+     * expires
+     * rid
+     * startedAt
+     * termConversionId
+     * termId
+     * promotionId
+     * token_list
+     * cookie_domain
+     * user_token
+     *
+     */
+    function onCheckoutComplete(data) {
+    }
+
+    function onCheckoutExternalEvent() {
+    }
+
+    function onCheckoutClose(event) {
+        /* Default behavior is to refresh the page on successful checkout */
+        if (event && event.state == "checkoutCompleted") {
+            // Cancello il cookie di sessione dell'abbonamento
+            document.cookie = 'sub=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+            
+            // Ricarico la pagina
+            location.reload();
+        }
+    }
+
+    function onCheckoutCancel() {
+    }
+
+    function onCheckoutError() {
+    }
+
+    function onCheckoutSubmitPayment() {
+    }
+
+    /* Meter callback */
+    function onMeterExpired() {
+
+    }
+
+    /* Meter callback */
+    function onMeterActive() {
+
+    }
+
+    /* Callback executed when a user must login */
+    function onLoginRequired() {
+        // this is a reference implementation only
+        // your own custom login/registration implementation would
+        // need to return the tinypass-compatible userRef inside the callback
+
+        // mysite.showLoginRegistration(function (tinypassUserRef)
+        // tp.push(["setUserRef", tinypassUserRef]); // tp.offer.startCheckout(params); // }
+        // this will prevent the tinypass error screen from displaying
+
+        return false;
+    }
+
+    /* Callback executed after a tinypassAccounts login */
+    function onLoginSuccess(data) {
+    	if (data.source == "PIANOID" && data.params.confirmed){
+  			location.reload(); // this reloads the page after direct login (NOT login inside checkout)
+		}
+    }
+
+    /* Callback executed after an experience executed successfully */
+    function onExperienceExecute(event) {
+    }
+
+    /* Callback executed if experience execution has been failed */
+    function onExperienceExecutionFailed(event) {
+    }
+
+    /* Callback executed if external checkout has been completed successfully */
+    function onExternalCheckoutComplete(event) {
+        /* Default behavior is to refresh the page on successful checkout */
+        location.reload();
+    }
+
+    tp.push(["setAid", 'spcXpNpZpe']);
+    tp.push(["setCxenseSiteId", "2479549485910980806"])
+    tp.push(["setEndpoint", 'https://buy-eu.piano.io/api/v3']);
+    tp.push(["setUseTinypassAccounts", false ]);
+    tp.push(["setUsePianoIdUserProvider", true ]);
+
+    /* checkout related events */
+    tp.push(["addHandler", "checkoutComplete", onCheckoutComplete]);
+    tp.push(["addHandler", "checkoutClose", onCheckoutClose]);
+    tp.push(["addHandler", "checkoutCustomEvent", onCheckoutExternalEvent]);
+    tp.push(["addHandler", "checkoutCancel", onCheckoutCancel]);
+    tp.push(["addHandler", "checkoutError", onCheckoutError]);
+    tp.push(["addHandler", "checkoutSubmitPayment", onCheckoutSubmitPayment]);
+
+    /* user login events */
+    tp.push(["addHandler", "loginRequired", onLoginRequired]);
+    tp.push(["addHandler", "loginSuccess", onLoginSuccess]);
+    tp.push(["addHandler", "logout", function(){
+      // Elimino il nome dal menu di login
+      setUserAccountMenu(false);
+      
+      console.log("LOGOUT!");
+      
+      // Cancello il cookie di sessione dell'abbonamento
+      document.cookie = 'sub=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      
+      // Ricarico la pagina
+      location.reload();
+    }]);
+
+    /* meter related */
+    tp.push(["addHandler", "meterExpired", onMeterExpired]);
+    tp.push(["addHandler", "meterActive", onMeterActive]);
+
+    tp.push(["addHandler", "experienceExecute", onExperienceExecute]);
+    tp.push(["addHandler", "experienceExecutionFailed", onExperienceExecutionFailed]);
+
+    /* external checkout related events */
+    tp.push(["addHandler", "externalCheckoutComplete", onExternalCheckoutComplete]);
+    
+    /* custom ANSA tags */
+    tp.push(["setTags", [sectionCode]]);
+    
+    // when a template is shown...
+	tp.push(["addHandler", "showOffer", () => {
+ 		 // ...we add a gradient strip above our template container (it's name should correspond to a specified one in Composer)...
+  		document.querySelector("#piano-container").classList.add("template-shown");
+  		// ...and hide everything after it within the same HTML container (also, the name should be checked)
+  		document.querySelectorAll("#piano-container ~ *").forEach((x) => {
+   		 x.hidden = true;
+  		});
+      	//document.getElementById("piano-container").innerHTML += "<p>Questo contenuto è riservato agli abbonati.</p>";
+	} ]);
+	
+    //console.log("test registration!");
+    
+    tp.push(["addHandler", "registrationSuccess", function (data){ 
+      		//console.log('registrationSuccess!'); 
+      		
+      		if(tp.hasOwnProperty('pianoId')) {
+					var MAILING_LISTS = [];
+	    			tp.pianoId.loadExtendedUser({
+    					extendedUserLoaded: function (data) {
+					    for (var i in data.custom_field_values) {
+            					var fieldName = data.custom_field_values[i].field_name;
+            					var fieldValue = data.custom_field_values[i].value;            
+								
+                          		//console.log('Field ' + fieldName + ' has value ' + fieldValue);
+                          		
+                          		if (fieldValue === 'true' && fieldName === 'registerfieldnewsletterprimapagina') {
+                                	MAILING_LISTS.push('99');
+                                }
+                         		if (fieldValue === 'true' && fieldName === 'registerfieldnewslettertodayheadlines') {
+                                	MAILING_LISTS.push('100');
+                                }
+        				}
+                        //console.log('MAILING_LISTS: ', MAILING_LISTS);
+                        // Registrazione alle mailing list corrispondenti
+                        if (MAILING_LISTS.length > 0) {
+                        	var email = tp.pianoId.getUser() ? tp.pianoId.getUser().email : data.user.email;
+                            var API_URL = '//api-esp-eu.piano.io';
+                            var SITE_ID = '9';
+                            var body = {email: email, sqids: MAILING_LISTS};
+                            var xhr = new XMLHttpRequest(); 
+                            xhr.open('POST', API_URL + '/tracker/lucid/sub/' + SITE_ID, true);
+                            xhr.setRequestHeader('Content-type', 'application/json'); 
+                          
+                          	//console.log('MAILING_LISTS BODY: ' + JSON.stringify(body));
+                          
+                            xhr.send(JSON.stringify(body));
+                            
+                        }
+                        //console.log('MAILING_LISTS: ', MAILING_LISTS + ' WROTE!');
+                        setUserAccountMenu(true);
+    				}});
+            }
+           
+    }]);
+    
+    var logoutButton = document.getElementById("logoutbutton");
+    
+    var tokenMatch = location.search.match(/reset_token=([A-Za-z0-9]+)/);
+	if (tokenMatch !== null) {
+      tp.push(["init", function() {
+		   tp.pianoId.show({
+		       displayMode: 'modal',
+		       screen: 'new_password'
+		   });
+		}]);
+		
+		tp.push(['init', function() {
+		   // Password can be reset only if user is anonymous
+		   if (!tp.user.isUserValid()) {
+		       // If URL has reset_token parameter
+		       var tokenMatch = location.search.match(/reset_token=([A-Za-z0-9]+)/);
+		       if (tokenMatch) {
+		           // Get value of the token
+		           var token = tokenMatch[1];
+		           // Present password reset form with the found token
+		           tp.pianoId.show({
+		               'resetPasswordToken': token, loggedIn: function () {
+		                   // Once user logs in - refresh the page
+		                  window.location.replace("/");
+		               }
+		           });
+		       }
+		   }
+		}]);
+    }
+    
+    tp.push(["init", function () {
+        
+        //console.log("Setting Piano Consent...");
+        tp.consent.set("DL", {mode: 'opt-out'});
+        tp.consent.set("PA", {mode: 'opt-out'});
+        tp.consent.set("VX", {mode: 'opt-out'});
+      
+        tp.experience.init();
+      	tp.pianoId.init({
+          iframeUrl:"https://id-eu.piano.io",
+          displayMode: 'modal',
+          //containerSelector: '#login-form',
+          loggedIn: function(data) {
+            //console.log('user ', data.user, ' logged in with token', data.token);
+            
+            if (logoutButton) {logoutButton.style.display = 'block';}
+            setUserAccountMenu(true);
+          },
+          loggedOut: function() {
+            //console.log('user logged out');
+            
+            if (logoutButton) {logoutButton.style.display = 'none';}
+            setUserAccountMenu(false);
+          }
+      	});
+    }]);
+})();
+
+
+    // do not change this section
+    // |BEGIN INCLUDE TINYPASS JS|
+    (function(src){var a=document.createElement("script");a.type="text/javascript";a.async=true;a.src=src;var b=document.getElementsByTagName("script")[0];b.parentNode.insertBefore(a,b)})("//code.piano.io/api/tinypass.min.js");
+    // |END   INCLUDE TINYPASS JS|
+
